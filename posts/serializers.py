@@ -1,42 +1,53 @@
 from rest_framework import serializers
-from .models import Post
+from .models import Post, Image
+from .utilities import get_file_hash
 
 
-class PostCreateSerializer(serializers.ModelSerializer):
+class ImageWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ("post", "image_data", "image_hash")
+        read_only_fields = ("post", "image_hash")
+
+    def validate(self, attrs):
+        MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024
+
+        image = attrs.get("image_data")
+        if not image:
+            raise serializers.ValidationError("Image not found!") 
+
+        if not image.content_type.startswith("image/"):
+            raise serializers.ValidationError("Support only image files!")
+
+        if image.size > MAX_IMAGE_SIZE_BYTES:
+            raise serializers.ValidationError(f"Image size must be at most {MAX_IMAGE_SIZE_BYTES}MB!")
+        
+        image_hash = get_file_hash(image)
+        if image_hash is None:
+            raise serializers.ValidationError("Failed to get the file hash!")
+
+        attrs["image_hash"] = image_hash
+        return attrs
+
+
+class ImageReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ("image_data",)
+        read_only_fields = ("image_data",)
+
+
+class PostWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = "__all__"
-        read_only_fields = ["id", "user", "created_at"]
-        extra_kwargs = {
-            "image": {
-                "write_only": True,
-                "required": False,
-            }
-        }
-
-    def validate(self, attrs):
-        title = attrs.get("title")
-        text = attrs.get("text")
-        if not isinstance(title, str) or len(title) == 0:
-            raise serializers.ValidationError("Invalid title!")
-        if not isinstance(text, str) or len(text) == 0:
-            raise serializers.ValidationError("Invalid text!")
-        return attrs
-    
-    def validate_image(self, image):
-        if not hasattr(image, "size"):
-            raise serializers.ValidationError("Image is required!")
-        if image.size > 2 * 1024 * 1024:
-            raise serializers.ValidationError("Image size must be at most 2MB!")
-        
-        if not image.content_type.startswith('image/'):
-            raise serializers.ValidationError("Support only image files!")
-        
-        return image
+        read_only_fields = ("id", "user", "created_at")
 
 
-class PostListSerializer(serializers.ModelSerializer):
+class PostReadSerializer(serializers.ModelSerializer):
+    images = ImageReadSerializer(many=True, required=False)
+
     class Meta:
         model = Post
-        fields = ["id", "user", "title", "text", "created_at"]
-        read_only_fields = ["id", "user", "title", "text", "created_at"]
+        fields = ("id", "user", "title", "text", "images", "created_at")
+        read_only_fields = fields

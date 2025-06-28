@@ -1,8 +1,10 @@
-from rest_framework import routers
+from rest_framework_nested.routers import DefaultRouter
 from .views import PostViewSet
+from django.urls import path, include
 
 
-router = routers.DefaultRouter()
-router.register(r"posts", PostViewSet, basename="post")
+posts_router = DefaultRouter()
+posts_router.register("", PostViewSet, basename="post")
 
-urlpatterns = router.urls
+
+urlpatterns = [path("", include(posts_router.urls))]
