@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Image
+from .models import Post, Image, Comment
 from .utilities import get_file_hash
 
 
@@ -14,14 +14,16 @@ class ImageWriteSerializer(serializers.ModelSerializer):
 
         image = attrs.get("image_data")
         if not image:
-            raise serializers.ValidationError("Image not found!") 
+            raise serializers.ValidationError("Image not found!")
 
         if not image.content_type.startswith("image/"):
             raise serializers.ValidationError("Support only image files!")
 
         if image.size > MAX_IMAGE_SIZE_BYTES:
-            raise serializers.ValidationError(f"Image size must be at most {MAX_IMAGE_SIZE_BYTES}MB!")
-        
+            raise serializers.ValidationError(
+                f"Image size must be at most {MAX_IMAGE_SIZE_BYTES}MB!"
+            )
+
         image_hash = get_file_hash(image)
         if image_hash is None:
             raise serializers.ValidationError("Failed to get the file hash!")
@@ -51,3 +53,10 @@ class PostReadSerializer(serializers.ModelSerializer):
         model = Post
         fields = ("id", "user", "title", "text", "images", "created_at")
         read_only_fields = fields
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ("id", "post", "user", "text", "created_at")
+        read_only_fields = ("user", "post", "created_at")

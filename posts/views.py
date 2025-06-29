@@ -1,12 +1,20 @@
 from rest_framework import viewsets, permissions
-from .serializers import PostWriteSerializer, ImageWriteSerializer, PostReadSerializer
+from .serializers import (
+    PostWriteSerializer,
+    ImageWriteSerializer,
+    PostReadSerializer,
+    CommentSerializer,
+)
+from django.shortcuts import get_object_or_404
 from rest_framework import parsers
-from .models import Post
+from .models import Post, Comment
+from .permissions import IsOwner
 
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    serializer_class = PostReadSerializer
     queryset = Post.objects.all()
 
     def get_serializer_class(self):
@@ -15,7 +23,7 @@ class PostViewSet(viewsets.ModelViewSet):
             "list": PostReadSerializer,
             "retrieve": PostReadSerializer,
         }
-        return serializers.get(self.action, PostReadSerializer)
+        return serializers.get(self.action, self.serializer_class)
 
     def get_queryset(self):
         user_pk = self.kwargs.get("user_pk")
@@ -28,8 +36,24 @@ class PostViewSet(viewsets.ModelViewSet):
 
         files = self.request.FILES.getlist("images")
         images_data = [{"image_data": file} for file in files]
-        import pdb; pdb.set_trace()
 
         images_serializer = ImageWriteSerializer(data=images_data, many=True)
         images_serializer.is_valid(raise_exception=True)
         images_serializer.save(post=post)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwner]
+    queryset = Comment.objects.none()
+
+    def get_queryset(self):
+        post_pk = self.kwargs.get("post_pk")
+        if post_pk is not None:
+            return Comment.objects.filter(post_id=post_pk)
+        return self.queryset
+
+    def perform_create(self, serializer):
+        post_pk = self.kwargs.get("post_pk")
+        post = get_object_or_404(Post, id=post_pk)
+        serializer.save(user=self.request.user, post=post)

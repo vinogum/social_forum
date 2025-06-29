@@ -22,13 +22,11 @@ def get_file_hash(file):
     return None
 
 
-# posts/post_id/images/...
-# file1 file2 file3
 def upload_to(instance, filename):
     post_dir = os.path.join("posts", str(instance.post_id))
 
     ex = filename.split(".")[-1]
     new_filename = f"{uuid.uuid1()}.{ex}"
     image_dir = os.path.join("images", new_filename)
-    
+
     return os.path.join(post_dir, image_dir)
