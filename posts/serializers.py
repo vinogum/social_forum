@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Image, Comment
+from .models import Post, Image, Comment, Reaction, ReactionType
 from .utilities import get_file_hash
 
 
@@ -32,11 +32,8 @@ class ImageWriteSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ImageReadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
-        fields = ("image_data",)
-        read_only_fields = ("image_data",)
+class ImageReadSerializer(serializers.Serializer):
+    image_data = serializers.CharField(read_only=True)
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
@@ -60,3 +57,20 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ("id", "post", "user", "text", "created_at")
         read_only_fields = ("user", "post", "created_at")
+
+
+class ReactionSerializer(serializers.ModelSerializer):
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+
+    class Meta:
+        model = Reaction
+        fields = ("user", "post", "type", "type_display")
+        read_only_fields = ("user", "post")
+
+    def validate(self, attrs):
+        type = attrs.get("type")
+
+        if type not in ReactionType.values:
+            raise serializers.ValidationError("Invalid reaction type!")
+
+        return attrs
