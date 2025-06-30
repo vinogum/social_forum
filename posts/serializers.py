@@ -74,3 +74,15 @@ class ReactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid reaction type!")
 
         return attrs
+
+    def create(self, validated_data):
+        user = validated_data.get("user")
+        post = validated_data.get("post")
+
+        if not user or not post:
+            raise serializers.ValidationError("User or Post data is missing!")
+
+        reaction, created = Reaction.objects.update_or_create(
+            user=user, post=post, defaults={"type": validated_data["type"]}
+        )
+        return reaction

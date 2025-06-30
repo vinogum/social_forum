@@ -8,7 +8,7 @@ from .serializers import (
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
-from .models import Post, Comment, Reaction
+from .models import Post, Comment
 from .permissions import IsOwner
 
 
@@ -68,12 +68,6 @@ class ReactionAPIView(views.APIView):
 
         serializer = ReactionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        type = serializer.validated_data["type"]
 
-        Reaction.objects.update_or_create(
-            user=request.user,
-            post=post,
-            defaults={"type": type},
-        )
-
+        serializer.save(user=self.request.user, post=post)
         return response.Response(data=serializer.data, status=status.HTTP_200_OK)
