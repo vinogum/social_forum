@@ -9,7 +9,7 @@ from .serializers import (
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
 from .models import Post, Comment
-from .permissions import IsOwner
+from .permissions import IsOwnerOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -45,7 +45,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwner]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Comment.objects.none()
 
     def get_queryset(self):

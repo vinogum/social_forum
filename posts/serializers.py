@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Image, Comment, Reaction, ReactionType
 from .utilities import get_file_hash
+from social_forum import settings
 
 
 class ImageWriteSerializer(serializers.ModelSerializer):
@@ -10,8 +11,6 @@ class ImageWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ("post", "image_hash")
 
     def validate(self, attrs):
-        MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024
-
         image = attrs.get("image_data")
         if not image:
             raise serializers.ValidationError("Image not found!")
@@ -19,9 +18,9 @@ class ImageWriteSerializer(serializers.ModelSerializer):
         if not image.content_type.startswith("image/"):
             raise serializers.ValidationError("Support only image files!")
 
-        if image.size > MAX_IMAGE_SIZE_BYTES:
+        if image.size > settings.MAX_IMAGE_SIZE_BYTES:
             raise serializers.ValidationError(
-                f"Image size must be at most {MAX_IMAGE_SIZE_BYTES}MB!"
+                f"Image size must be at most {settings.MAX_IMAGE_SIZE_BYTES}MB!"
             )
 
         image_hash = get_file_hash(image)
@@ -65,7 +64,7 @@ class ReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reaction
         fields = ("user", "post", "type", "type_display")
-        read_only_fields = ("user", "post")
+        read_only_fields = ("user", "post", "type_display")
 
     def validate(self, attrs):
         type = attrs.get("type")

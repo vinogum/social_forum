@@ -1,6 +1,9 @@
 from django.db import models
 from .utilities import upload_to
 from django.contrib.auth.models import User
+import shutil
+import os
+from social_forum import settings
 
 
 class Post(models.Model):
@@ -9,11 +12,27 @@ class Post(models.Model):
     text = models.TextField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def delete(self, *args, **kwargs):
+        post_dir = os.path.join(
+            settings.MEDIA_ROOT, settings.MEDIA_SUBDIR_POSTS, str(self.id)
+        )
+        if os.path.isdir(post_dir):
+            shutil.rmtree(post_dir)
+
+        super().delete(*args, **kwargs)
+
 
 class Image(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
     image_data = models.ImageField(upload_to=upload_to, null=True, blank=True)
     image_hash = models.CharField(max_length=128)
+
+    def delete(self, *args, **kwargs):
+        file_path = self.image_data.path
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        super().delete(*args, **kwargs)
 
 
 class Comment(models.Model):

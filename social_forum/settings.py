@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,6 +129,14 @@ MEDIA_URL = "media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
+MEDIA_SUBDIR_POSTS = "posts"
+
+MEDIA_SUBDIR_IMAGES = "images"
+
+UPLOAD_PATH_TEMPLATE = os.path.join(
+    MEDIA_SUBDIR_POSTS, "{post_id}", MEDIA_SUBDIR_IMAGES, "{filename}"
+)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -141,3 +150,5 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+
+MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024

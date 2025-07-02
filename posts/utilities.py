@@ -1,7 +1,6 @@
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 import hashlib
-import os
-import uuid
+from social_forum import settings
 
 
 def get_file_hash(file):
@@ -23,10 +22,12 @@ def get_file_hash(file):
 
 
 def upload_to(instance, filename):
-    post_dir = os.path.join("posts", str(instance.post_id))
+    post_id = str(instance.post_id)
+    ext = filename.split(".")[-1]
+    new_filename = f"{instance.image_hash}.{ext}"
 
-    ex = filename.split(".")[-1]
-    new_filename = f"{uuid.uuid1()}.{ex}"
-    image_dir = os.path.join("images", new_filename)
-
-    return os.path.join(post_dir, image_dir)
+    relative_path = settings.UPLOAD_PATH_TEMPLATE.format(
+        post_id=post_id,
+        filename=new_filename,
+    )
+    return relative_path
