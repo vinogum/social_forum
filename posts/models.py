@@ -1,6 +1,9 @@
 from django.db import models
 from .utilities import upload_to
 from django.contrib.auth.models import User
+import shutil
+import os
+from social_forum import settings
 
 
 class Post(models.Model):
@@ -9,11 +12,25 @@ class Post(models.Model):
     text = models.TextField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def delete(self, *args, **kwargs):
+        post_dir = os.path.join(settings.MEDIA_ROOT, "posts", str(self.id))
+        if os.path.isdir(post_dir):
+            shutil.rmtree(post_dir)
+
+        super().delete(*args, **kwargs)
+
 
 class Image(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
     image_data = models.ImageField(upload_to=upload_to, null=True, blank=True)
     image_hash = models.CharField(max_length=128)
+
+    def delete(self, *args, **kwargs):
+        file_path = self.image_data.path
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        super().delete(*args, **kwargs)
 
 
 class Comment(models.Model):
@@ -23,20 +40,16 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class ReactionType(models.IntegerChoices):
+    NONE = 0, "None"
+    DISLIKE = -1, "Dislike"
+    LIKE = 1, "Like"
+
+
 class Reaction(models.Model):
-    LIKE = 1
-    DISLIKE = -1
-    NONE = 0
-
-    REACTION_CHOICES = [
-        (LIKE, "Like"),
-        (DISLIKE, "Dislike"),
-        (NONE, "None"),
-    ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reactions")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
-    reaction = models.IntegerField(choices=REACTION_CHOICES, default=NONE)
+    type = models.IntegerField(choices=ReactionType.choices, default=ReactionType.NONE)
 
     class Meta:
         unique_together = ("user", "post")

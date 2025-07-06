@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Post, Image, Comment
+from .models import Post, Image, Comment, Reaction, ReactionType
 from .utilities import get_file_hash
+from social_forum import settings
 
 
 class ImageWriteSerializer(serializers.ModelSerializer):
@@ -10,33 +11,29 @@ class ImageWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ("post", "image_hash")
 
     def validate(self, attrs):
-        MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024
-
         image = attrs.get("image_data")
         if not image:
-            raise serializers.ValidationError("Image not found!")
+            raise serializers.ValidationError("Image not found")
 
         if not image.content_type.startswith("image/"):
-            raise serializers.ValidationError("Support only image files!")
+            raise serializers.ValidationError("Support only image files")
 
-        if image.size > MAX_IMAGE_SIZE_BYTES:
+        if image.size > settings.MAX_IMAGE_SIZE_BYTES:
             raise serializers.ValidationError(
-                f"Image size must be at most {MAX_IMAGE_SIZE_BYTES}MB!"
+                f"Image size must be at most {settings.MAX_IMAGE_SIZE_BYTES}MB"
             )
 
-        image_hash = get_file_hash(image)
-        if image_hash is None:
-            raise serializers.ValidationError("Failed to get the file hash!")
+        try:
+            image_hash = get_file_hash(image)
+        except TypeError as e:
+            raise serializers.ValidationError(f"Failed to get the file hash: {e}")
 
         attrs["image_hash"] = image_hash
         return attrs
 
 
-class ImageReadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
-        fields = ("image_data",)
-        read_only_fields = ("image_data",)
+class ImageReadSerializer(serializers.Serializer):
+    image_data = serializers.CharField(read_only=True)
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
@@ -60,3 +57,32 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ("id", "post", "user", "text", "created_at")
         read_only_fields = ("user", "post", "created_at")
+
+
+class ReactionSerializer(serializers.ModelSerializer):
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+
+    class Meta:
+        model = Reaction
+        fields = ("user", "post", "type", "type_display")
+        read_only_fields = ("user", "post", "type_display")
+
+    def validate(self, attrs):
+        type = attrs.get("type")
+
+        if type not in ReactionType.values:
+            raise serializers.ValidationError("Invalid reaction type")
+
+        return attrs
+
+    def create(self, validated_data):
+        user = validated_data.get("user")
+        post = validated_data.get("post")
+
+        if not user or not post:
+            raise serializers.ValidationError("User or Post data is missing")
+
+        reaction, created = Reaction.objects.update_or_create(
+            user=user, post=post, defaults={"type": validated_data["type"]}
+        )
+        return reaction

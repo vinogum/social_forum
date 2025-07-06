@@ -1,14 +1,15 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, views, response, status
 from .serializers import (
     PostWriteSerializer,
     ImageWriteSerializer,
     PostReadSerializer,
     CommentSerializer,
+    ReactionSerializer,
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
 from .models import Post, Comment
-from .permissions import IsOwner
+from .permissions import IsOwnerOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -44,7 +45,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwner]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Comment.objects.none()
 
     def get_queryset(self):
@@ -57,3 +58,16 @@ class CommentViewSet(viewsets.ModelViewSet):
         post_pk = self.kwargs.get("post_pk")
         post = get_object_or_404(Post, id=post_pk)
         serializer.save(user=self.request.user, post=post)
+
+
+class ReactionAPIView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, post_pk):
+        post = get_object_or_404(Post, id=post_pk)
+
+        serializer = ReactionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(user=self.request.user, post=post)
+        return response.Response(data=serializer.data, status=status.HTTP_200_OK)
