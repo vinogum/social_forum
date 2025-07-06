@@ -13,19 +13,20 @@ class ImageWriteSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         image = attrs.get("image_data")
         if not image:
-            raise serializers.ValidationError("Image not found!")
+            raise serializers.ValidationError("Image not found")
 
         if not image.content_type.startswith("image/"):
-            raise serializers.ValidationError("Support only image files!")
+            raise serializers.ValidationError("Support only image files")
 
         if image.size > settings.MAX_IMAGE_SIZE_BYTES:
             raise serializers.ValidationError(
-                f"Image size must be at most {settings.MAX_IMAGE_SIZE_BYTES}MB!"
+                f"Image size must be at most {settings.MAX_IMAGE_SIZE_BYTES}MB"
             )
 
-        image_hash = get_file_hash(image)
-        if image_hash is None:
-            raise serializers.ValidationError("Failed to get the file hash!")
+        try:
+            image_hash = get_file_hash(image)
+        except TypeError as e:
+            raise serializers.ValidationError(f"Failed to get the file hash: {e}")
 
         attrs["image_hash"] = image_hash
         return attrs
@@ -70,7 +71,7 @@ class ReactionSerializer(serializers.ModelSerializer):
         type = attrs.get("type")
 
         if type not in ReactionType.values:
-            raise serializers.ValidationError("Invalid reaction type!")
+            raise serializers.ValidationError("Invalid reaction type")
 
         return attrs
 
@@ -79,7 +80,7 @@ class ReactionSerializer(serializers.ModelSerializer):
         post = validated_data.get("post")
 
         if not user or not post:
-            raise serializers.ValidationError("User or Post data is missing!")
+            raise serializers.ValidationError("User or Post data is missing")
 
         reaction, created = Reaction.objects.update_or_create(
             user=user, post=post, defaults={"type": validated_data["type"]}

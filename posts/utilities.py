@@ -1,24 +1,20 @@
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 import hashlib
 from social_forum import settings
+from django.core.files import File
 
 
-def get_file_hash(file):
-    if isinstance(file, InMemoryUploadedFile):
-        file.seek(0)
-        content = file.read()
-        file.seek(0)
-        return hashlib.sha256(content).hexdigest()
+def get_file_hash(file_obj: File) -> str:
+    if not isinstance(file_obj, File):
+        raise TypeError(f"Expected Django File, got {type(file_obj)}!")
 
-    elif isinstance(file, TemporaryUploadedFile):
-        hash_obj = hashlib.sha256()
-        file.seek(0)
-        for chunk in file.chunks():
-            hash_obj.update(chunk)
-        file.seek(0)
-        return hash_obj.hexdigest()
+    hasher = hashlib.sha256()
 
-    return None
+    file_obj.open()
+    for chunk in file_obj.chunks():
+        hasher.update(chunk)
+    file_obj.close()
+
+    return hasher.hexdigest()
 
 
 def upload_to(instance, filename):

@@ -13,9 +13,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def delete(self, *args, **kwargs):
-        post_dir = os.path.join(
-            settings.MEDIA_ROOT, settings.MEDIA_SUBDIR_POSTS, str(self.id)
-        )
+        post_dir = os.path.join(settings.MEDIA_ROOT, "posts", str(self.id))
         if os.path.isdir(post_dir):
             shutil.rmtree(post_dir)
 

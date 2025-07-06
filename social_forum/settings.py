@@ -129,14 +129,6 @@ MEDIA_URL = "media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
-MEDIA_SUBDIR_POSTS = "posts"
-
-MEDIA_SUBDIR_IMAGES = "images"
-
-UPLOAD_PATH_TEMPLATE = os.path.join(
-    MEDIA_SUBDIR_POSTS, "{post_id}", MEDIA_SUBDIR_IMAGES, "{filename}"
-)
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -151,4 +143,8 @@ REST_FRAMEWORK = {
     ],
 }
 
+# My constants
+
 MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024
+
+UPLOAD_PATH_TEMPLATE = "posts/{post_id}/images/{filename}"
