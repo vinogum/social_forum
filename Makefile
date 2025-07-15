@@ -5,8 +5,6 @@
 run: db
 	python3 manage.py runserver
 
-setup: venv install
-
 
 # ---------- Database ----------
 db: makemigrations migrate
