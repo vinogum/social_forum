@@ -46,9 +46,9 @@ cd social_forum
 **2. Set up the environment and install dependencies**
 
 ```bash
-python3 -m venv venv
+make venv
 source venv/bin/activate
-pip install -r requirements.txt
+make install
 ```
 
 **3. Apply database migrations:**
