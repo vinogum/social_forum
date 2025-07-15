@@ -91,6 +91,13 @@ make test
 ### Authentication
 
 - `POST /users/register/` – Register a new user
+  **Request Body (JSON):**
+  ```json
+  {
+    "username": "username",
+    "password": "password"
+  }
+  ```
 
 ### Users
 
@@ -102,6 +109,10 @@ make test
 
 - `GET /posts/` – List all posts  
 - `POST /posts/` – Create a new post *(requires authentication)*  
+  **Request Body (multipart/form-data):**
+  - `title` – *(string)* Post title  
+  - `text` – *(string)* Post content  
+  - `images` – *(file)* One or more image files *(optional, multiple allowed)*  
 - `GET /posts/{id}/` – Retrieve a specific post  
 - `PUT /posts/{id}/` – Update a post *(requires ownership)*  
 - `DELETE /posts/{id}/` – Delete a post *(requires ownership)*
