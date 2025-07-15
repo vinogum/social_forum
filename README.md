@@ -51,24 +51,7 @@ This command will create a Python virtual environment and install all the requir
 make setup
 ```
 
-**3. Configure the database:**
-
-Open `social_forum/settings.py` and update the `DATABASES` setting with your PostgreSQL credentials:
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "your_db_name",
-        "USER": "your_db_user",
-        "PASSWORD": "your_db_password",
-        "HOST": "your_db_host",
-        "PORT": "your_db_port",
-    }
-}
-```
-
-**4. Apply database migrations:**
+**3. Apply database migrations:**
 
 This will create the necessary tables in your database.
 
@@ -76,7 +59,7 @@ This will create the necessary tables in your database.
 make db
 ```
 
-**5. Create a superuser (optional):**
+**4. Create a superuser (optional):**
 
 This allows you to access the Django admin panel.
 
@@ -84,7 +67,7 @@ This allows you to access the Django admin panel.
 make superuser
 ```
 
-**6. Run the development server:**
+**5. Run the development server:**
 
 ```bash
 make run

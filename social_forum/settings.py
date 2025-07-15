@@ -78,12 +78,8 @@ WSGI_APPLICATION = "social_forum.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "54525254",
-        "HOST": "172.21.192.1",
-        "PORT": "",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",  # файл базы в корне проекта
     }
 }
 
