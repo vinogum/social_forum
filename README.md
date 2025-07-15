@@ -43,12 +43,12 @@ git clone <your-repository-url>
 cd social_forum
 ```
 
-**2. Set up the environment and install dependencies:**
-
-This command will create a Python virtual environment and install all the required packages from `requirements.txt`.
+**2. Set up the environment and install dependencies**
 
 ```bash
-make setup
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 **3. Apply database migrations:**
