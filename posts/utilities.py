@@ -9,10 +9,11 @@ def get_file_hash(file_obj: File) -> str:
 
     hasher = hashlib.sha256()
 
-    file_obj.open()
+    file_obj.seek(0)
     for chunk in file_obj.chunks():
         hasher.update(chunk)
-    file_obj.close()
+
+    file_obj.seek(0)
 
     return hasher.hexdigest()
 
