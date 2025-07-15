@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, views, response, status
-from .serializers import (
+from posts.serializers import (
     PostWriteSerializer,
     ImageWriteSerializer,
     PostReadSerializer,
@@ -8,8 +8,8 @@ from .serializers import (
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
-from .models import Post, Comment
-from .permissions import IsOwnerOrReadOnly
+from posts.models import Post, Comment
+from posts.permissions import IsOwnerOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
