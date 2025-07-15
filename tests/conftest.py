@@ -1,4 +1,4 @@
-from posts.models import User, Post, Image, Reaction
+from posts.models import User, Post, Image
 from social_forum import settings
 import pytest  # type: ignore
 from django.core.files import File
