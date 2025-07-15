@@ -19,8 +19,8 @@ def test_valid_file(valid_file):
 @pytest.mark.parametrize("case", INVALID_CASES)
 def test_invalid_images(invalid_files, case):
     data = invalid_files[case]
-    serializer = ImageWriteSerializer(data=data)
-    assert not serializer.is_valid()
+    image_serializer = ImageWriteSerializer(data=data)
+    assert not image_serializer.is_valid(), image_serializer.errors
 
 
 def test_react_serializer():
@@ -28,4 +28,4 @@ def test_react_serializer():
     datas = [{"type": react} for react in reacts]
     for data in datas:
         react_serializer = ReactionSerializer(data=data)
-        assert True == react_serializer.is_valid()
+        assert react_serializer.is_valid(), react_serializer.errors

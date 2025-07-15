@@ -12,6 +12,7 @@ TEST_FILES_DIR = settings.BASE_DIR / "tests" / "files"
 def wrap_file(file_path: Path) -> File:
     return File(open(file_path, "rb"), name=file_path.name)
 
+
 # Serializer fixtures
 @pytest.fixture
 def valid_file():
