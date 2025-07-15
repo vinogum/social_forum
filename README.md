@@ -20,8 +20,7 @@ It provides a RESTful API for users to create posts, upload images, comment on p
 ## Technologies Used
 
 - Django  
-- Django REST Framework  
-- PostgreSQL  
+- Django REST Framework
 - pytest  
 - pytest-django
 
@@ -31,8 +30,7 @@ It provides a RESTful API for users to create posts, upload images, comment on p
 
 ### Prerequisites
 
-- Python 3  
-- PostgreSQL
+- Python 3
 
 ### Instructions
 
