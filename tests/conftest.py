@@ -1,45 +1,65 @@
-from posts.models import User, Post, Image
-from social_forum import settings
-import pytest  # type: ignore
-from django.core.files import File
-from pathlib import Path
-from posts.utilities import get_file_hash
-import base64
-from rest_framework.test import APIClient
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
-
-TEST_FILES_DIR = settings.BASE_DIR / "tests" / "files"
+from posts.models import User, Post, Image
+from posts.utilities import get_file_hash
+from rest_framework.test import APIClient
+from io import BytesIO
+import PIL.Image
+import pytest
+import base64
 
 USERNAME = "testuser"
 
 PASSWORD = "testpassword"
 
 
-def wrap_file(file_path: Path) -> File:
-    return File(open(file_path, "rb"), name=file_path.name)
+def generate_image_file(
+    name="image.jpg", size=(100, 100), color="white", format="JPEG"
+):
+    img_io = BytesIO()
+    image = PIL.Image.new("RGB", size, color=color)
+    image.save(img_io, format=format)
+    img_io.seek(0)
+    return SimpleUploadedFile(name, img_io.read(), content_type="image/jpeg")
 
 
-@pytest.fixture
-def valid_file():
-    file_path = TEST_FILES_DIR / "valid__file.jpg"
-    file = wrap_file(file_path)
-    return file
+def generate_large_image_file(name="large_image.jpg", min_size_mb=3):
+    img_io = BytesIO()
+    size = 1000
+    while True:
+        img_io.seek(0)
+        img_io.truncate(0)
+        image = PIL.Image.new("RGB", (size, size), color="white")
+        image.save(img_io, format="JPEG", quality=95)
+        if img_io.tell() >= min_size_mb * 1024 * 1024:
+            break
+        size += 200
+    img_io.seek(0)
+    return SimpleUploadedFile(name, img_io.read(), content_type="image/jpeg")
 
 
 @pytest.fixture
 def invalid_files():
-    file_paths = TEST_FILES_DIR.iterdir()
-    files_dict = {}
+    return [
+        (
+            "invalid__too_large",
+            generate_large_image_file("invalid__too_large.jpg", min_size_mb=3),
+        ),
+        (
+            "invalid__not_image",
+            SimpleUploadedFile(
+                "invalid__not_image.pdf",
+                b"%PDF-1.4 fake content",
+                content_type="application/pdf",
+            ),
+        ),
+        ("invalid__no_file", None),
+    ]
 
-    for file_path in file_paths:
-        if file_path.is_file():
-            key = file_path.stem
 
-            if key.startswith("invalid__"):
-                files_dict[key] = {"image_data": wrap_file(file_path)}
-
-    files_dict["invalid__not_image"] = {"image_data": None}
-    return files_dict
+@pytest.fixture
+def valid_file():
+    return generate_image_file("valid__file.jpg", size=(10, 10))
 
 
 @pytest.fixture

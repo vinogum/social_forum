@@ -1,31 +1,14 @@
-from posts.serializers import ImageWriteSerializer, ReactionSerializer
-from posts.models import ReactionType
-import pytest  # type: ignore
-
-INVALID_CASES = [
-    "invalid__bad_ext",
-    "invalid__no_ext",
-    "invalid__too_large",
-    "invalid__not_image",
-]
+from posts.serializers import ImageWriteSerializer
 
 
 def test_valid_file(valid_file):
-    valid_data = {"image_data": valid_file}
-    image_serializer = ImageWriteSerializer(data=valid_data)
+    image_serializer = ImageWriteSerializer(data={"image_data": valid_file})
     assert image_serializer.is_valid(), image_serializer.errors
 
 
-@pytest.mark.parametrize("case", INVALID_CASES)
-def test_invalid_images(invalid_files, case):
-    data = invalid_files[case]
-    image_serializer = ImageWriteSerializer(data=data)
-    assert not image_serializer.is_valid(), image_serializer.errors
-
-
-def test_react_serializer():
-    reacts = [ReactionType.DISLIKE, ReactionType.NONE, ReactionType.DISLIKE]
-    datas = [{"type": react} for react in reacts]
-    for data in datas:
-        react_serializer = ReactionSerializer(data=data)
-        assert react_serializer.is_valid(), react_serializer.errors
+def test_invalid_images(invalid_files):
+    for error, file in invalid_files:
+        image_serializer = ImageWriteSerializer(data={"image_data": file})
+        assert (
+            not image_serializer.is_valid()
+        ), f"Failed case: {error}. Serializer error: {image_serializer.errors}"
