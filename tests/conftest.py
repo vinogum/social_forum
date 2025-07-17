@@ -3,17 +3,22 @@ from social_forum import settings
 import pytest  # type: ignore
 from django.core.files import File
 from pathlib import Path
-import io
 from posts.utilities import get_file_hash
+import base64
+from rest_framework.test import APIClient
+from django.contrib.auth.models import User
 
 TEST_FILES_DIR = settings.BASE_DIR / "tests" / "files"
+
+USERNAME = "testuser"
+
+PASSWORD = "testpassword"
 
 
 def wrap_file(file_path: Path) -> File:
     return File(open(file_path, "rb"), name=file_path.name)
 
 
-# Serializer fixtures
 @pytest.fixture
 def valid_file():
     file_path = TEST_FILES_DIR / "valid__file.jpg"
@@ -37,10 +42,9 @@ def invalid_files():
     return files_dict
 
 
-# Model fixtures
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="testuser", password="testpassword")
+    return User.objects.create_user(username=USERNAME, password=PASSWORD)
 
 
 @pytest.fixture
@@ -64,3 +68,14 @@ def image(db, post, valid_file):
     finally:
         if Image.objects.filter(id=image.id).exists():
             image.delete()
+
+
+@pytest.fixture
+def api_client(db, user):
+    client = APIClient()
+
+    credentials = f"{USERNAME}:{PASSWORD}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+    client.credentials(HTTP_AUTHORIZATION=f"Basic {encoded_credentials}")
+    return client
