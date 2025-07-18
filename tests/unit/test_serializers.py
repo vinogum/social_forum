@@ -7,8 +7,8 @@ def test_valid_file(valid_file):
 
 
 def test_invalid_images(invalid_files):
-    for error, file in invalid_files:
-        image_serializer = ImageWriteSerializer(data={"image_data": file})
+    for error, invalid_file in invalid_files:
+        image_serializer = ImageWriteSerializer(data={"image_data": invalid_file})
         assert (
             not image_serializer.is_valid()
         ), f"Failed case: {error}. Serializer error: {image_serializer.errors}"

@@ -1,49 +1,51 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
-from posts.models import User, Post, Image
+from posts.models import Post, Image
 from posts.utilities import get_file_hash
 from rest_framework.test import APIClient
 from io import BytesIO
+from social_forum import settings
 import PIL.Image
 import pytest
 import base64
+
+MAX_IMAGE_SIZE_MB = int(settings.MAX_IMAGE_SIZE_BYTES / 1024 / 1024)
 
 USERNAME = "testuser"
 
 PASSWORD = "testpassword"
 
 
-def generate_image_file(
-    name="image.jpg", size=(100, 100), color="white", format="JPEG"
-):
-    img_io = BytesIO()
-    image = PIL.Image.new("RGB", size, color=color)
-    image.save(img_io, format=format)
-    img_io.seek(0)
-    return SimpleUploadedFile(name, img_io.read(), content_type="image/jpeg")
+def generate_bmp_image_file(name: str, size_mb: int) -> SimpleUploadedFile:
+    if not isinstance(name, str) or len(name) == 0:
+        return None
 
+    if not isinstance(size_mb, int) or size_mb <= 0:
+        return None
 
-def generate_large_image_file(name="large_image.jpg", min_size_mb=3):
-    img_io = BytesIO()
-    size = 1000
-    while True:
-        img_io.seek(0)
-        img_io.truncate(0)
-        image = PIL.Image.new("RGB", (size, size), color="white")
-        image.save(img_io, format="JPEG", quality=95)
-        if img_io.tell() >= min_size_mb * 1024 * 1024:
-            break
-        size += 200
-    img_io.seek(0)
-    return SimpleUploadedFile(name, img_io.read(), content_type="image/jpeg")
+    target_size_bytes = size_mb * 1024 * 1024
+    bytes_per_pixel = 3  # RGB = 3 bytes
+    side_length = int((target_size_bytes / bytes_per_pixel) ** 0.5)
+
+    image = PIL.Image.new("RGB", (side_length, side_length), color="white")
+    img_buffer = BytesIO()
+    image.save(img_buffer, format="BMP")
+
+    img_buffer.seek(0)
+    content = img_buffer.read()
+    content_type = "image/bmp"
+    return SimpleUploadedFile(name, content, content_type=content_type)
 
 
 @pytest.fixture
 def invalid_files():
+    size_mb = MAX_IMAGE_SIZE_MB + 1
+    filename = "invalid__too_large.bmp"
+
     return [
         (
             "invalid__too_large",
-            generate_large_image_file("invalid__too_large.jpg", min_size_mb=3),
+            generate_bmp_image_file(filename, size_mb),
         ),
         (
             "invalid__not_image",
@@ -59,7 +61,9 @@ def invalid_files():
 
 @pytest.fixture
 def valid_file():
-    return generate_image_file("valid__file.jpg", size=(10, 10))
+    filename = "valid__file.bmp"
+    size_mb = 1
+    return generate_bmp_image_file(filename, size_mb)
 
 
 @pytest.fixture
