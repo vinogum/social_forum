@@ -86,3 +86,9 @@ class ReactionSerializer(serializers.ModelSerializer):
             user=user, post=post, defaults={"type": validated_data["type"]}
         )
         return reaction
+
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ("title", "text")

@@ -5,6 +5,7 @@ from posts.serializers import (
     PostReadSerializer,
     CommentSerializer,
     ReactionSerializer,
+    PostUpdateSerializer,
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
@@ -14,7 +15,7 @@ from posts.permissions import IsOwnerOrReadOnly
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
     serializer_class = PostReadSerializer
     queryset = Post.objects.all()
 
@@ -23,6 +24,8 @@ class PostViewSet(viewsets.ModelViewSet):
             "create": PostWriteSerializer,
             "list": PostReadSerializer,
             "retrieve": PostReadSerializer,
+            "update": PostUpdateSerializer,
+            "partial_update": PostUpdateSerializer,
         }
         return serializers.get(self.action, self.serializer_class)
 
