@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger("django")
 
+
 @receiver(post_save, sender=Post)
 def log_post_creation(sender, instance, created, **kwargs):
     if created:

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, views, response, status
+from rest_framework import viewsets, permissions, views, response, status, mixins
 from posts.serializers import (
     PostWriteSerializer,
     ImageWriteSerializer,
@@ -46,7 +46,13 @@ class PostViewSet(viewsets.ModelViewSet):
         images_serializer.save(post=post)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(
+    viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Comment.objects.all()
