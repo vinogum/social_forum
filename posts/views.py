@@ -33,7 +33,7 @@ class PostViewSet(viewsets.ModelViewSet):
         user_pk = self.kwargs.get("user_pk")
         if user_pk:
             return Post.objects.filter(user_id=user_pk)
-        return self.queryset
+        return Post.objects.all()
 
     def perform_create(self, serializer):
         post = serializer.save(user=self.request.user)
@@ -49,13 +49,13 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    queryset = Comment.objects.none()
+    queryset = Comment.objects.all()
 
     def get_queryset(self):
         post_pk = self.kwargs.get("post_pk")
         if post_pk is not None:
             return Comment.objects.filter(post_id=post_pk)
-        return self.queryset
+        return Comment.objects.all()
 
     def perform_create(self, serializer):
         post_pk = self.kwargs.get("post_pk")
