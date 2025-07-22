@@ -29,7 +29,10 @@ build:
 	docker build -t social-forum:dev .
 
 run:
-	docker run --rm -p 8000:8000 social-forum:dev
+	docker run --rm -it -p 8000:8000 social-forum:dev
+
+run-dev:
+	docker run --rm -it -p 8000:8000 -v $(CURDIR):/social_forum social-forum:dev
 
 # ---------- Other tasks ----------
 superuser:
