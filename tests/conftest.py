@@ -1,46 +1,74 @@
-from posts.models import User, Post, Image
-from social_forum import settings
-import pytest  # type: ignore
-from django.core.files import File
-from pathlib import Path
-import io
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import User
+from posts.models import Post, Image
 from posts.utilities import get_file_hash
+from rest_framework.test import APIClient
+from io import BytesIO
+from social_forum import settings
+import PIL.Image
+import pytest
+import base64
 
-TEST_FILES_DIR = settings.BASE_DIR / "tests" / "files"
+MAX_IMAGE_SIZE_MB = int(settings.MAX_IMAGE_SIZE_BYTES / 1024 / 1024)
+
+USERNAME = "testuser"
+
+PASSWORD = "testpassword"
 
 
-def wrap_file(file_path: Path) -> File:
-    return File(open(file_path, "rb"), name=file_path.name)
+def generate_bmp_image_file(name: str, size_mb: int) -> SimpleUploadedFile:
+    if not isinstance(name, str) or len(name) == 0:
+        return None
 
+    if not isinstance(size_mb, int) or size_mb <= 0:
+        return None
 
-# Serializer fixtures
-@pytest.fixture
-def valid_file():
-    file_path = TEST_FILES_DIR / "valid__file.jpg"
-    file = wrap_file(file_path)
-    return file
+    target_size_bytes = size_mb * 1024 * 1024
+    bytes_per_pixel = 3  # RGB = 3 bytes
+    side_length = int((target_size_bytes / bytes_per_pixel) ** 0.5)
+
+    image = PIL.Image.new("RGB", (side_length, side_length), color="white")
+    img_buffer = BytesIO()
+    image.save(img_buffer, format="BMP")
+
+    img_buffer.seek(0)
+    content = img_buffer.read()
+    content_type = "image/bmp"
+    return SimpleUploadedFile(name, content, content_type=content_type)
 
 
 @pytest.fixture
 def invalid_files():
-    file_paths = TEST_FILES_DIR.iterdir()
-    files_dict = {}
+    size_mb = MAX_IMAGE_SIZE_MB + 1
+    filename = "invalid__too_large.bmp"
 
-    for file_path in file_paths:
-        if file_path.is_file():
-            key = file_path.stem
+    return [
+        (
+            "invalid__too_large",
+            generate_bmp_image_file(filename, size_mb),
+        ),
+        (
+            "invalid__not_image",
+            SimpleUploadedFile(
+                "invalid__not_image.pdf",
+                b"%PDF-1.4 fake content",
+                content_type="application/pdf",
+            ),
+        ),
+        ("invalid__no_file", None),
+    ]
 
-            if key.startswith("invalid__"):
-                files_dict[key] = {"image_data": wrap_file(file_path)}
 
-    files_dict["invalid__not_image"] = {"image_data": None}
-    return files_dict
+@pytest.fixture
+def valid_file():
+    filename = "valid__file.bmp"
+    size_mb = 1
+    return generate_bmp_image_file(filename, size_mb)
 
 
-# Model fixtures
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="testuser", password="testpassword")
+    return User.objects.create_user(username=USERNAME, password=PASSWORD)
 
 
 @pytest.fixture
@@ -64,3 +92,14 @@ def image(db, post, valid_file):
     finally:
         if Image.objects.filter(id=image.id).exists():
             image.delete()
+
+
+@pytest.fixture
+def api_client(db, user):
+    client = APIClient()
+
+    credentials = f"{USERNAME}:{PASSWORD}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+    client.credentials(HTTP_AUTHORIZATION=f"Basic {encoded_credentials}")
+    return client

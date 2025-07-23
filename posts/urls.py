@@ -1,5 +1,5 @@
 from rest_framework_nested.routers import DefaultRouter, NestedDefaultRouter
-from .views import PostViewSet, CommentViewSet, ReactionAPIView
+from .views import PostViewSet, CommentViewSet, ReactionViewSet
 from django.urls import path, include
 
 
@@ -7,10 +7,10 @@ posts_router = DefaultRouter()
 posts_router.register("", PostViewSet, basename="post")
 post_comments_router = NestedDefaultRouter(posts_router, "", lookup="post")
 post_comments_router.register(r"comments", CommentViewSet, basename="comment")
+post_comments_router.register(r"reactions", ReactionViewSet, basename="like")
 
 
 urlpatterns = [
-    path("<int:post_pk>/react/", ReactionAPIView.as_view(), name="post-react"),
     path("", include(posts_router.urls)),
     path("", include(post_comments_router.urls)),
 ]

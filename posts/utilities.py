@@ -5,7 +5,10 @@ from django.core.files import File
 
 def get_file_hash(file_obj: File) -> str:
     if not isinstance(file_obj, File):
-        raise TypeError(f"Expected Django File, got {type(file_obj)}!")
+        raise TypeError(f"Expected Django File, got {type(file_obj)}")
+
+    if file_obj.closed:
+        raise TypeError("Cannot read closed file")
 
     hasher = hashlib.sha256()
 
