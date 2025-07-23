@@ -66,6 +66,12 @@ This is the easiest way to get the application running.
     ```
     The application will be available at `http://localhost:8000`.
 
+**Note:**  
+A superuser is created automatically before the container starts.  
+- **Username:** admin  
+- **Password:** admin  
+- **Email:** admin@example.com
+
 ### 2. Run Locally
 
 **Prerequisites:**
