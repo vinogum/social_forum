@@ -8,6 +8,7 @@ from posts.serializers import (
     ReactionCreateSerializer,
     ReactionReadSerializer,
     PostUpdateSerializer,
+    PostRetrieveSerializer,
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
@@ -25,7 +26,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializers = {
             "create": PostWriteSerializer,
             "list": PostReadSerializer,
-            "retrieve": PostReadSerializer,
+            "retrieve": PostRetrieveSerializer,
             "update": PostUpdateSerializer,
             "partial_update": PostUpdateSerializer,
         }

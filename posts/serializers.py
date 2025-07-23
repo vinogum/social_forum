@@ -66,6 +66,16 @@ class ReactionSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "user", "post")
 
 
+class PostRetrieveSerializer(serializers.ModelSerializer):
+    images = ImageReadSerializer(many=True, required=False)
+    comments = CommentSerializer(many=True, required=False)
+
+    class Meta:
+        model = Post
+        fields = ("id", "user", "title", "text", "images", "comments", "created_at")
+        read_only_fields = fields
+
+
 class ReactionCreateSerializer(serializers.ModelSerializer):
     class Meta(ReactionSerializer.Meta):
         pass
