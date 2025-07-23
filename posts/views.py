@@ -1,15 +1,17 @@
-from rest_framework import viewsets, permissions, views, response, status, mixins
+from rest_framework import viewsets, permissions, mixins
 from posts.serializers import (
     PostWriteSerializer,
     ImageWriteSerializer,
     PostReadSerializer,
     CommentSerializer,
     ReactionSerializer,
+    ReactionCreateSerializer,
+    ReactionReadSerializer,
     PostUpdateSerializer,
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
-from posts.models import Post, Comment
+from posts.models import Post, Comment, Reaction
 from posts.permissions import IsOwnerOrReadOnly
 
 
@@ -69,14 +71,35 @@ class CommentViewSet(
         serializer.save(user=self.request.user, post=post)
 
 
-class ReactionAPIView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+class ReactionViewSet(
+    viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+):
+    serializer_class = ReactionReadSerializer
+    queryset = Reaction.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
-    def post(self, request, post_pk):
+    def get_queryset(self):
+        post_pk = self.kwargs.get("post_pk")
+        if post_pk:
+            return Reaction.objects.filter(post=post_pk)
+        return Reaction.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action in ["update", "delete"]:
+            return ReactionSerializer
+        elif self.action == "create":
+            return ReactionCreateSerializer
+        else: return self.serializer_class
+    
+    def get_serializer_context(self):
+        context = {"request": self.request, "post_pk": self.kwargs.get("post_pk")}
+        return context
+
+    def perform_create(self, serializer):
+        post_pk = self.kwargs.get("post_pk")
         post = get_object_or_404(Post, id=post_pk)
-
-        serializer = ReactionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
         serializer.save(user=self.request.user, post=post)
-        return response.Response(data=serializer.data, status=status.HTTP_200_OK)

@@ -40,16 +40,10 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class ReactionType(models.IntegerChoices):
-    NONE = 0, "None"
-    DISLIKE = -1, "Dislike"
-    LIKE = 1, "Like"
-
-
 class Reaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reactions")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
-    type = models.IntegerField(choices=ReactionType.choices, default=ReactionType.NONE)
+    type = models.BooleanField()
 
     class Meta:
         unique_together = ("user", "post")

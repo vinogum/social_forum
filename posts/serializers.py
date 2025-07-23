@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Post, Image, Comment, Reaction, ReactionType
-from .utilities import get_file_hash
+from posts.models import Post, Image, Comment, Reaction
+from posts.utilities import get_file_hash
 from social_forum import settings
 
 
@@ -60,35 +60,41 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReactionSerializer(serializers.ModelSerializer):
-    type_display = serializers.CharField(source="get_type_display", read_only=True)
-
     class Meta:
         model = Reaction
-        fields = ("user", "post", "type", "type_display")
-        read_only_fields = ("user", "post", "type_display")
+        fields = ("id", "user", "post", "type")
+        read_only_fields = ("id", "user", "post")
+
+
+class ReactionCreateSerializer(serializers.ModelSerializer):
+    class Meta(ReactionSerializer.Meta):
+        pass
 
     def validate(self, attrs):
-        type = attrs.get("type")
+        request = self.context.get("request")
+        post_pk = self.context.get("post_pk")
 
-        if type not in ReactionType.values:
-            raise serializers.ValidationError("Invalid reaction type")
+        if not request or not post_pk:
+            raise serializers.ValidationError("The variables request and post_pk are required")
 
+        if Reaction.objects.filter(user=request.user, post=post_pk).exists():
+            raise serializers.ValidationError(f"Reaction already exists from user with ID {request.user.id}")
+        
         return attrs
 
-    def create(self, validated_data):
-        user = validated_data.get("user")
-        post = validated_data.get("post")
 
-        if not user or not post:
-            raise serializers.ValidationError("User or Post data is missing")
-
-        reaction, created = Reaction.objects.update_or_create(
-            user=user, post=post, defaults={"type": validated_data["type"]}
-        )
-        return reaction
+class ReactionReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reaction
+        fields = ("id", "post", "user", "type")
+        read_only_fields = fields
 
 
 class PostUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("title", "text")
+        extra_kwargs = {
+            "title": {"required": False},
+            "text": {"required": False},
+        }
