@@ -1,14 +1,9 @@
 from rest_framework import viewsets, permissions, mixins
 from posts.serializers import (
-    PostWriteSerializer,
-    ImageWriteSerializer,
-    PostReadSerializer,
-    CommentSerializer,
-    ReactionSerializer,
-    ReactionCreateSerializer,
-    ReactionReadSerializer,
-    PostUpdateSerializer,
-    PostRetrieveSerializer,
+    comment,
+    image,
+    post,
+    reaction,
 )
 from django.shortcuts import get_object_or_404
 from rest_framework import parsers
@@ -19,16 +14,16 @@ from posts.permissions import IsOwnerOrReadOnly
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
-    serializer_class = PostReadSerializer
+    serializer_class = post.PostReadSerializer
     queryset = Post.objects.all()
 
     def get_serializer_class(self):
         serializers = {
-            "create": PostWriteSerializer,
-            "list": PostReadSerializer,
-            "retrieve": PostRetrieveSerializer,
-            "update": PostUpdateSerializer,
-            "partial_update": PostUpdateSerializer,
+            "create": post.PostWriteSerializer,
+            "list": post.PostReadSerializer,
+            "retrieve": post.PostRetrieveSerializer,
+            "update": post.PostUpdateSerializer,
+            "partial_update": post.PostUpdateSerializer,
         }
         return serializers.get(self.action, self.serializer_class)
 
@@ -44,7 +39,7 @@ class PostViewSet(viewsets.ModelViewSet):
         files = self.request.FILES.getlist("images")
         images_data = [{"image_data": file} for file in files]
 
-        images_serializer = ImageWriteSerializer(data=images_data, many=True)
+        images_serializer = image.ImageWriteSerializer(data=images_data, many=True)
         images_serializer.is_valid(raise_exception=True)
         images_serializer.save(post=post)
 
@@ -56,7 +51,7 @@ class CommentViewSet(
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
 ):
-    serializer_class = CommentSerializer
+    serializer_class = comment.CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Comment.objects.all()
 
@@ -79,7 +74,7 @@ class ReactionViewSet(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
 ):
-    serializer_class = ReactionReadSerializer
+    serializer_class = reaction.ReactionReadSerializer
     queryset = Reaction.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -88,14 +83,15 @@ class ReactionViewSet(
         if post_pk:
             return Reaction.objects.filter(post=post_pk)
         return Reaction.objects.all()
-    
+
     def get_serializer_class(self):
         if self.action in ["update", "delete"]:
-            return ReactionSerializer
+            return reaction.ReactionSerializer
         elif self.action == "create":
-            return ReactionCreateSerializer
-        else: return self.serializer_class
-    
+            return reaction.ReactionCreateSerializer
+        else:
+            return self.serializer_class
+
     def get_serializer_context(self):
         context = {"request": self.request, "post_pk": self.kwargs.get("post_pk")}
         return context

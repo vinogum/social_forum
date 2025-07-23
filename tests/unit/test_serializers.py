@@ -1,4 +1,4 @@
-from posts.serializers import ImageWriteSerializer
+from posts.serializers.image import ImageWriteSerializer
 
 
 def test_valid_file(valid_file):
