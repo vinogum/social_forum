@@ -1,132 +1,110 @@
-# Social Forum with REST API
+# Social Forum API
 
-This is a social forum application built with Django and Django REST Framework.  
-It provides a RESTful API for users to create posts, upload images, comment on posts, and react to them.
+This is a REST API for a social forum application built with Django and Django REST Framework. It provides endpoints for user registration, authentication, and creating posts with images, comments, and reactions.
 
 ---
 
 ## Features
 
-- **User Management**: User registration and authentication.
-- **Posts**: Full CRUD (Create, Read, Update, Delete) functionality for posts.
-- **Image Uploads**: Attach multiple images to posts with validation for file type and size.
-- **Comments**: Add comments to posts.
-- **Reactions**: Like or dislike posts.
-- **Permissions**: Users can only edit or delete their own posts and comments.
-- **Testing**: Unit tests for models and serializers.
-
----
-
-## Technologies Used
-
-- Django  
-- Django REST Framework
-- pytest  
-- pytest-django
-
----
-
-## Setup and Installation
-
-### Prerequisites
-
-- Python 3
-
-### Instructions
-
-**1. Clone the repository:**
-
-```bash
-git clone <your-repository-url>
-cd social_forum
-```
-
-**2. Set up the environment and install dependencies**
-
-```bash
-make venv
-source venv/bin/activate
-make install
-```
-
-**3. Apply database migrations:**
-
-This will create the necessary tables in your database.
-
-```bash
-make db
-```
-
-**4. Create a superuser (optional):**
-
-This allows you to access the Django admin panel.
-
-```bash
-make superuser
-```
-
-**5. Run the development server:**
-
-```bash
-make run
-```
-
-The application will be available at:  
-[http://127.0.0.1:8000](http://127.0.0.1:8000)
-
----
-
-## Running Tests
-
-To run the unit tests, use the following command:
-
-```bash
-make test
-```
+* [cite_start]**User Management**: Register and authenticate users[cite: 13, 14].
+* [cite_start]**Post Management**: Full CRUD (Create, Read, Update, Delete) for posts[cite: 5, 6].
+* [cite_start]**Image Uploads**: Attach multiple images to posts[cite: 2].
+* [cite_start]**Comments**: Add, view, update, and delete comments on posts[cite: 8].
+* [cite_start]**Reactions**: Add, view, update, and delete reactions (likes/dislikes) on posts[cite: 9, 10].
+* [cite_start]**Nested Routes**: Access related resources easily (e.g., a user's posts or a post's comments)[cite: 3, 13].
+* [cite_start]**File Handling**: Automatic cleanup of post directories and images when objects are deleted[cite: 1, 2].
 
 ---
 
 ## API Endpoints
 
-### Authentication
+Here are the main API endpoints available in the project.
 
-- `POST /users/register/` – Register a new user
-  **Request Body (JSON):**
-  ```json
-  {
-    "username": "username",
-    "password": "password"
-  }
-  ```
+### User and Authentication
 
-### Users
-
-- `GET /users/` – List all users  
-- `GET /users/{id}/` – Retrieve a specific user  
-- `GET /users/{user_pk}/posts/` – List all posts by a specific user
+* [cite_start]`POST /users/register/`: Create a new user[cite: 13].
+* [cite_start]`GET /users/`: Get a list of all users[cite: 13].
+* [cite_start]`GET /users/{user_id}/`: Get details for a specific user[cite: 13].
+* [cite_start]`GET /users/{user_id}/posts/`: Get all posts created by a specific user[cite: 7, 13].
 
 ### Posts
 
-- `GET /posts/` – List all posts  
-- `POST /posts/` – Create a new post *(requires authentication)*  
-  **Request Body (multipart/form-data):**
-  - `title` – *(string)* Post title  
-  - `text` – *(string)* Post content  
-  - `images` – *(file)* One or more image files *(optional, multiple allowed)*  
-- `GET /posts/{id}/` – Retrieve a specific post  
-- `PUT /posts/{id}/` – Update a post *(requires ownership)*  
-- `DELETE /posts/{id}/` – Delete a post *(requires ownership)*
+* [cite_start]`POST /posts/`: Create a new post[cite: 3].
+* [cite_start]`GET /posts/`: Get a list of all posts[cite: 3, 7].
+* [cite_start]`GET /posts/{post_id}/`: Get a single post[cite: 22].
+* [cite_start]`PATCH /posts/{post_id}/`: Update a post[cite: 6].
+* [cite_start]`DELETE /posts/{post_id}/`: Delete a post[cite: 1].
 
-### Comments
+### Comments and Reactions
 
-- `GET /posts/{post_pk}/comments/` – List all comments for a post  
-- `POST /posts/{post_pk}/comments/` – Add a comment to a post *(requires authentication)*  
-- `PUT /posts/{post_pk}/comments/{id}/` – Update a comment *(requires ownership)*  
-- `DELETE /posts/{post_pk}/comments/{id}/` – Delete a comment *(requires ownership)*
+* [cite_start]`POST /posts/{post_id}/comments/`: Add a comment to a post[cite: 3, 9].
+* [cite_start]`GET /posts/{post_id}/comments/`: Get all comments for a post[cite: 3].
+* [cite_start]`POST /posts/{post_id}/reactions/`: Add a reaction to a post[cite: 3, 11].
+* [cite_start]`GET /posts/{post_id}/reactions/`: Get all reactions for a post[cite: 3].
 
-### Reactions
+---
 
-- `POST /posts/{post_pk}/react/` – Add or update a reaction (like/dislike) to a post *(requires authentication)*  
-  **Body:**  
-  - `{"type": 1}` – Like  
-  - `{"type": -1}` – Dislike
+## Getting Started
+
+You can run the project locally or with Docker.
+
+### 1. Run with Docker (Recommended)
+
+This is the easiest way to get the application running.
+
+**Prerequisites:**
+* Docker
+
+**Instructions:**
+1.  **Build the image:**
+    ```sh
+    make build
+    ```
+2.  [cite_start]**Run the container**[cite: 15]:
+    ```sh
+    make run
+    ```
+    The application will be available at `http://localhost:8000`.
+
+### 2. Run Locally
+
+**Prerequisites:**
+* Python 3.10
+* pip
+
+**Instructions:**
+1.  **Clone the repository:**
+    ```sh
+    git clone <your-repository-url>
+    cd social-forum
+    ```
+2.  **Create a virtual environment:**
+    ```sh
+    make venv
+    ```
+3.  **Activate the virtual environment:**
+    ```sh
+    source venv/bin/activate
+    ```
+4.  [cite_start]**Install dependencies**[cite: 15]:
+    ```sh
+    make install
+    ```
+5.  [cite_start]**Run database migrations**[cite: 15]:
+    ```sh
+    make db
+    ```
+6.  [cite_start]**Run the development server**[cite: 15]:
+    ```sh
+    make serve
+    ```
+    The application will be available at `http://localhost:8000`.
+
+---
+
+## Running Tests
+
+To run the automated tests, set up the project locally and then run the following command:
+
+```sh
+pytest
