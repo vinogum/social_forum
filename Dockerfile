@@ -5,10 +5,10 @@ WORKDIR /social_forum
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY entrypoint.sh /social_forum/entrypoint.sh
+COPY entrypoint.sh .
 RUN chmod +x /social_forum/entrypoint.sh
 
-COPY . /social_forum/
+COPY . .
 
 ENTRYPOINT ["/social_forum/entrypoint.sh"]
 
