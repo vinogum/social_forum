@@ -1,6 +1,6 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
-from posts.models import Post, Image
+from posts.models import Post, Image, Comment
 from posts.utilities import get_file_hash
 from rest_framework.test import APIClient
 from io import BytesIO
@@ -92,6 +92,16 @@ def image(db, post, valid_file):
     finally:
         if Image.objects.filter(id=image.id).exists():
             image.delete()
+
+
+@pytest.fixture
+def comment(db, user, post):
+    comment = Comment.objects.create(user=user, post=post, text="text")
+    try:
+        yield comment
+    finally:
+        if Comment.objects.filter(id=comment.id).exists():
+            comment.delete()
 
 
 @pytest.fixture
