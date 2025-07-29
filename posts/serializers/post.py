@@ -4,10 +4,12 @@ from posts.models import Post
 
 
 class PostWriteSerializer(ModelSerializer):
+    images = image.ImageReadSerializer(many=True, required=False)
+
     class Meta:
         model = Post
-        fields = "__all__"
-        read_only_fields = ("id", "user", "created_at")
+        fields = ("id", "user", "title", "text", "images", "created_at")
+        read_only_fields = ("id", "user", "images", "created_at")
 
 
 class PostReadSerializer(ModelSerializer):
